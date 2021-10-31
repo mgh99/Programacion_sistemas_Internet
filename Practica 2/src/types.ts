@@ -13,10 +13,5 @@ export type CharacterAPI = {
   
   export type Character = Omit<CharacterAPI, "episode"> & {
     episode: Array<EpisodeAPI>;
-    /*
-    * Character ={
-      id,name,status,species, episode(Character NO)=> episode=Array<EpisodeAPI>
-    }
-     */
   };
   export type Episode = EpisodeAPI;
