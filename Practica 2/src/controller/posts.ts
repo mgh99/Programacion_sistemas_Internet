@@ -1,7 +1,7 @@
-/** source/controllers/posts.ts */
 import { Request, Response, NextFunction, request } from 'express';
 import {ArrayOperator, DeleteResult, MongoClient}from "mongodb";
 import axios, { AxiosResponse } from 'axios';
+
 /// Es lo que me devuelve mi mongo 
 type Episode={
     name:string,
@@ -22,8 +22,7 @@ type character={
     episode:Array<Episode>
 }
 
-//coger el estado
-
+//INDICA AL SERVIDOR QUE ESTA TODO BIEN Y PUEDE RECIBIR PETICIONES
 const getstatus = async (req: Request, res: Response, next: NextFunction) => {
     if (res.statusCode === 200) {
         return res.json({
@@ -40,7 +39,7 @@ const getstatus = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 
-// obtener todos los personajes
+//OBTIENE TODOS LOS PERSONAJES DE LA SERIE
 const getPosts = async (req: Request, res: Response, next: NextFunction) => {
     // get some posts
     const uri = "mongodb+srv://mgh99:mariagh99@cluster0.r1qlh.mongodb.net/Maria?retryWrites=true&w=majority";
@@ -55,7 +54,7 @@ const getPosts = async (req: Request, res: Response, next: NextFunction) => {
 
 };
 
-// getting a single post
+//OBTIENE UN SOLO PERSONAJE EN CONCRETO DE LA SERIE
 const getPost = async (req: Request, res: Response, next: NextFunction) => {
     let id:number=+req.params.id;
     const uri = "mongodb+srv://mgh99:mariagh99@cluster0.r1qlh.mongodb.net/Maria?retryWrites=true&w=majority";
@@ -75,13 +74,13 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
         });
     }else{
         return res.status(404).json({
-            message: "NOT FOUND"
+            message: "Not found"
         });
     }
     }))})
 };
 
-// updating a post
+//CAMBIA EL STATUS DE UN PERSONAJE, DEVUELVE LOS DATOS DEL PERSONAJE Y SI TODO SALE BIEN SALE UN MENSAJE
 const updatePost = async (req: Request, res: Response, next: NextFunction) => {
     const uri = "mongodb+srv://mgh99:mariagh99@cluster0.r1qlh.mongodb.net/Maria?retryWrites=true&w=majority";
     const client = new MongoClient(uri);
@@ -91,27 +90,27 @@ const updatePost = async (req: Request, res: Response, next: NextFunction) => {
     let change_status: string = "unknown";
 
     client.connect().then(async () => {
-        console.log("Me he conectado a la base de datos");
+        console.log("Conectado a la base de datos");
 
         const result = await client.db("Rick&Morty").collection("characters").findOne({ id: valor });
 
         if (result) {
 
-            //Find status
+            //Encontramos status
             Object.keys(result).forEach((k: string) => {
                 if (k == "status") {
                     change_status = `${(result)[k]}`;
                 }
             });
 
-            //Change status
+            //Cambiar el status
             if (change_status == "Alive") {
                 change_status = "Dead";
             } else if (change_status == "Dead") {
                 change_status = "Alive";
             }
 
-            //Update status
+            //Actualizar el status
             const filter = { id: valor };
             const updatePost = {
                 $set: {
@@ -120,7 +119,7 @@ const updatePost = async (req: Request, res: Response, next: NextFunction) => {
             };
             let result_status_change = await client.db("Rick&Morty").collection("characters").findOneAndUpdate(filter, updatePost);
             
-            //Format
+            //Formato
             let resu = await client.db("Rick&Morty").collection("characters").find({ id: valor }).toArray();
             const updatecharacter = resu.map((result) => {
                 const { id, name, status, episode } = result;
@@ -153,8 +152,7 @@ const updatePost = async (req: Request, res: Response, next: NextFunction) => {
     })
 };
 
-
-// deleting a post
+//BORRA UN PERSONAJE Y SI TODO SALE BIEN SALE UN MENSAJE
 const deletePost = async (req: Request, res: Response, next: NextFunction) => {
     const uri = "mongodb+srv://mgh99:mariagh99@cluster0.r1qlh.mongodb.net/Maria?retryWrites=true&w=majority";
     const client = new MongoClient(uri);
@@ -162,7 +160,7 @@ const deletePost = async (req: Request, res: Response, next: NextFunction) => {
     const valor: number = +identifier;
 
     client.connect().then(async () => {
-        console.log("Me he conectado a la base de datos");
+        console.log("Conectado a la base de datos");
         let result = await client.db("Rick&Morty").collection("characters").findOne({ id: valor });
         if (result) {
             let result = await client.db("Rick&Morty").collection("characters").deleteOne({ id: valor });
