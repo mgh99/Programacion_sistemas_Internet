@@ -14,15 +14,17 @@ Los endpoints que debe ofrecer la API son los siguientes:
 ### GET /status
 
 Indica que el servidor está OK y listo para recibir peticiones.
-
+```
 Response
 
 Status: 200
 
 Body: Devuelve la fecha del día en formato dd-mm-aaaa
+````
 
 ### POST /signin
 
+```
 Request
 
 Se debe pasar como body (investigar en internet cómo se hace) el email y la contraseña
@@ -38,8 +40,9 @@ Si no se puede realizar el registro (existe ya un usuario)
 Response
 
 Status: 409
-
+```
 ### POST /login (1 punto)
+```
 
 Request
 
@@ -61,6 +64,7 @@ Si no se puede realizar el login
 Response
 
 Status: 401
+```
 
 ### POST /logout (1 punto)
 
@@ -68,6 +72,7 @@ Requiere estar loggeado.
 
 Si el logout es OK
 
+```
 Response
 
 Status: 200
@@ -79,10 +84,12 @@ Si hay algún error
 Response
 
 Status: 500
+```
 
 ### GET /freeseats (1 puntos)
 
 Requiere estar loggeado.
+```
 
 Request
 
@@ -102,11 +109,13 @@ Si el día mes y año introducidos no son válidos, por ejemplo el mes es 34
 Response
 
 Status: 500
+```
 
 ### POST /book (1 punto)
 
 Requiere estar loggeado.
 
+```
 Request
 
 Se debe pasar como parámetro el día, mes y año y el número del puesto que se desea
@@ -132,11 +141,12 @@ Si la fecha es inválida o ya ha pasado, o el número de puesto no es válido
 Response
 
 Status:500
-
+```
 ### POST /free (3 puntos)
 
 Requiere estar loggeado.
 
+```
 Request
 
 Se debe pasar como body el día, mes y año. Libera el puesto si lo he reservado yo
@@ -158,20 +168,20 @@ Si la fecha es inválida
 Response
 
 Status: 500
-
+```
 ### GET /mybookings (3 puntos)
 
 Requiere estar loggeado.
-
+```
 Response
 
 Status: 200
 
-Body: Un array con todas mis reservas futuras (desde la fecha en la que se hace la
-petición)
+Body: Un array con todas mis reservas futuras (desde la fecha en la que se hace la petición)
 
 Si no había ningún sitio reservado en el futuro con mi usuario
 
 Response
 
 Status: 404
+```
