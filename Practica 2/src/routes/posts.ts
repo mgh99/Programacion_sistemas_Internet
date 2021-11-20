@@ -1,6 +1,5 @@
 import express from 'express';
 import controller from '../controller/posts';
-//import getCharacters from "";
 
 const router = express.Router();
 
