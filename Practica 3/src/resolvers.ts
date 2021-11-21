@@ -106,7 +106,7 @@ export const freeseats = async (req: Request, res: Response) => {
     seat = seat.filter(num => num !== elem.seat); //filtra por cada numero de sitios
   })
 
-  res.status(200).json(seat); //esto significa devolver un json (ALUCINANDOOO)
+  return res.status(200).json(seat); //esto significa devolver un json (ALUCINANDOOO)
 }
 
 //book = reserva de los sitios
@@ -121,7 +121,7 @@ export const book = async (req: Request, res: Response) => {
   }).toArray() as Documentos[];
 
   if(books.length === 1){ //implica que hay una ocurrencia en mi base de datos
-    return res.status(200).send(`Numero de asiento ${req.query.seat} ya ha sido reservado\n`);
+    return res.status(404).send(`Numero de asiento ${req.query.seat} ya ha sido reservado\n`);
   }
   
   const documentos: Documentos = {
@@ -172,7 +172,7 @@ export const mybookings = async (req:Request, res:Response)=>{
 
   for(let i=0; i<puest.length; i++){
     let fecha = new Date(`${puest[i].year}-${puest[i].month}-${puest[i].day}`);
-    if(fecha.toDateString()<=fechahoy.toDateString()){
+    if(fecha.getTime()<=fechahoy.getTime()){
       puest.filter(elem=> elem !== puest[i]);
     }
   }
