@@ -172,7 +172,7 @@ export const mybookings = async (req:Request, res:Response)=>{
 
   for(let i=0; i<puest.length; i++){
     let fecha = new Date(`${puest[i].year}-${puest[i].month}-${puest[i].day}`);
-    if(fecha.getTime()<=fechahoy.getTime()){
+    if(fecha.getTime()<=fechahoy.getTime() === true){
       puest.filter(elem=> elem !== puest[i]);
     }
   }
