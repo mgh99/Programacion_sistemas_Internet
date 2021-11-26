@@ -53,8 +53,8 @@ export const signin = async (req: Request, res: Response) => {
 
   const usuario: Usuario = {
     email: (req.body.email as string),
-    contraseña:  encriptar(req.body.contraseña as string),
-    token: uuidv4()
+    contraseña: encriptar(req.body.contraseña as string),
+    token: undefined
   };
 
 
@@ -72,18 +72,40 @@ export const login = async (req: Request, res: Response) => {
   const db: Db = req.app.get("db");
 
   const user: Usuario = await db.collection("Users").findOne({
-    email: (req.body.email as string),
-    contraseña: desencriptar(req.body.contraseña as string, signin.usuario.contraseña as string)
+    email: (req.body.email as string)
   }) as Usuario;
 
   if (user) {
-    const tok = user.token;//genera el token
+    if (user.token !== null) {
+      return res.status(401).send("No se puede logear, usuario ya esta en uso");
+    } else {
+      if (brcypt.compareSync(req.body.contraseña, user.contraseña)) {
+        const tok = uuidv4();
+        (await db.collection("Users").updateOne({ email: (req.body.email as string) }, { $set: { token: tok } }))
+        set(tok);
+        return res.status(200).send(`Uusuario logeado, token ${tok}`);
+      } else {
+        return res.status(401).send("No se puede logear, la contraseña no coincide");
+      }
+    }
+  } else {
+    return res.status(401).send("No se puede logear, correo no registrado");
+  }
+
+  if (user && !(user.token)) {
+    /*
+      Añadiendo user.token!==null hace que solo pueda haber una sesion activa
+      OJO!!-> si cierras la consola, se reiniciará el token teniendo el valor 
+      de undefine, haciendo imposible el log in
+    */
+
+    const tok = uuidv4();
+    (await db.collection("Users").updateOne({ email: (req.body.email as string), contraseña: (req.body.contraseña as string) }, { $set: { token: tok } }))
     set(tok);
     return res.status(200).send(`Usuario logeado, token ${tok}`);
   } else {
-    return res.status(401).send("No se puede logear");
+    return res.status(401).send("No se puede logear, contraseña incorrecta o hay un con sesion abierta en esta cuenta");
   }
-
 }
 
 //logout = una vez el usuario ha entrado quiere salir
@@ -206,3 +228,6 @@ export const mybookings = async (req: Request, res: Response) => {
 }
 
 
+
+
+  
