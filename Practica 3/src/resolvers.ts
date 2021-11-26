@@ -5,6 +5,8 @@ import { Documentos, Usuario } from "./types";
 import { uuid } from "uuidv4";
 import { set, getToken } from "./app";
 import { parse } from "path/posix";
+const brcypt = require("bcrypt");
+
 
 //POSTMAN: tiene 3 formas de pasar datos 
 /*
@@ -28,7 +30,15 @@ CHAN
         CHAN!!!
 */
 //******************************************************** */
+export const encriptar = (contraseña: string) => {
+  return brcypt.hashSync(contraseña, 10);//10 es la cantidad de veces que se va a encriptar la contraseña
+}
 
+export const desencriptar = (contraseña: string, hash: string) => {
+  return brcypt.compareSync(contraseña, hash);//compara la contraseña con el hash
+}
+
+//este es el unico sitio donde se crea la contraseña
 export const signin = async (req: Request, res: Response) => {
   const db: Db = req.app.get("db");
 
@@ -43,10 +53,12 @@ export const signin = async (req: Request, res: Response) => {
 
   const usuario: Usuario = {
     email: (req.body.email as string),
-    contraseña: (req.body.contraseña as string),
+    contraseña:  encriptar(req.body.contraseña as string),
     token: uuidv4()
   };
-                                                                //luego de que se haya resuelto se ejecuta esto
+
+
+  //luego de que se haya resuelto se ejecuta esto
   const chars = await db.collection("Users").insertOne(usuario).then((elem: any) => {
     return res.status(200).send(`Vamos a registrar en la base de datos un usuario con\remail: ${req.body.email}\rContraseña: ${req.body.contraseña}`);
   }).catch((error: any) => {
@@ -61,7 +73,7 @@ export const login = async (req: Request, res: Response) => {
 
   const user: Usuario = await db.collection("Users").findOne({
     email: (req.body.email as string),
-    contraseña: (req.body.contraseña as string)
+    contraseña: desencriptar(req.body.contraseña as string, signin.usuario.contraseña as string)
   }) as Usuario;
 
   if (user) {
@@ -96,9 +108,9 @@ export const freeseats = async (req: Request, res: Response) => {
     year: parseInt((req.query.year as string))
   }).toArray() as Documentos[];
 
-  let seat: Array <Number> = [];
+  let seat: Array<Number> = [];
 
-  for(let i = 1; i <= 20; i++) {
+  for (let i = 1; i <= 20; i++) {
     seat.push(i);
   }
 
@@ -120,21 +132,28 @@ export const book = async (req: Request, res: Response) => {
     seat: parseInt((req.query.seat as string))
   }).toArray() as Documentos[];
 
-  if(books.length === 1){ //implica que hay una ocurrencia en mi base de datos
+  if (books.length === 1) { //implica que hay una ocurrencia en mi base de datos
     return res.status(404).send(`Numero de asiento ${req.query.seat} ya ha sido reservado\n`);
   }
-  
+
+  //solo el token porque es lo que ncesito que encuentre no todo
+  const usuario = await db.collection("Users").findOne({
+    token: req.headers.token
+  }) as Usuario;
+
+
+
   const documentos: Documentos = {
     day: parseInt((req.query.day as string)),
     month: parseInt((req.query.month as string)),
     year: parseInt((req.query.year as string)),
     seat: parseInt((req.query.seat as string)),
-    token: req.headers.token as string
+    id: req.headers.token as string
   };
 
-  const char= await db.collection("Documentos").insertOne(documentos).then((elem: any) => {
+  const char = await db.collection("Documentos").insertOne(documentos).then((elem: any) => {
     return res.status(500).json(`Tu reserva es en la fecha ${req.query.day} - ${req.query.month} - ${req.query.year} y con numero de reserva ${req.query.seat}`);
-  }).catch((error:any) => {
+  }).catch((error: any) => {
     return res.status(404).send("Algo ha ido mal al hacer la reserva");
   });
 
@@ -146,11 +165,13 @@ export const free = async (req: Request, res: Response) => {
 
   //Se borra la que estoy buscando
   const char = await db.collection("Documentos").deleteOne(
-    { day: parseInt((req.body.day as string)), 
-      month: parseInt((req.body.month as string)), 
-      year: parseInt((req.body.year as string)), 
+    {
+      day: parseInt((req.body.day as string)),
+      month: parseInt((req.body.month as string)),
+      year: parseInt((req.body.year as string)),
       seat: parseInt((req.body.seat as string)),
-      token: req.headers.token }
+      token: req.headers.token
+    }
   );
 
   //devuleve una pequeña estructura y te dice si la ha borrado o no
@@ -161,25 +182,27 @@ export const free = async (req: Request, res: Response) => {
   }
 }
 
-export const mybookings = async (req:Request, res:Response)=>{
+export const mybookings = async (req: Request, res: Response) => {
   const db: Db = req.app.get("db");
 
-  let puest: Documentos[] = (await db.collection("Documentos").find({ 
-    token:req.headers.token 
+  let puest: Documentos[] = (await db.collection("Documentos").find({
+    token: req.headers.token
   }).toArray() as Documentos[]);
 
   const fechahoy = new Date();
 
-  for(let i=0; i<puest.length; i++){
+  for (let i = 0; i < puest.length; i++) {
     let fecha = new Date(`${puest[i].year}-${puest[i].month}-${puest[i].day}`);
-    if(fecha.getTime()<=fechahoy.getTime() === true){
-      puest.filter(elem=> elem !== puest[i]);
+    if (fecha.getTime() <= fechahoy.getTime() === true) {
+      puest.filter(elem => elem !== puest[i]);
     }
   }
 
-  if(puest.length === 0){
+  if (puest.length === 0) {
     return res.status(404).send("No hay ninguna reserva futura")
-  }else{
+  } else {
     return res.status(200).send(puest);
   }
 }
+
+
