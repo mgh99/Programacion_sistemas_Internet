@@ -1,5 +1,5 @@
 # Programacion_sistemas_Internet
-## ✨ Contribuyentes
+## ✨ Particiapntes
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
