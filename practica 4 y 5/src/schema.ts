@@ -1,30 +1,25 @@
 import { ApolloError, ApolloServer, gql } from "apollo-server";
 
 export const typeDefs = gql`
-
 type Ingredient {
     id: ID!
     name: String!
     recipes: [Recipe!]!
 }
-
 input IngredientInput {
     name: String!
 }
-
 type Recipe {
     id: ID!
-    title: String!
+    name: String!
     description: String!
     ingredients: [Ingredient!]!
     author: User!
 }
-
 input RecipeInput{
-    title: String!
+    name: String!
     ingredients: [Int!]!
 }
-
 type User {
     id: ID!
     email: String!
@@ -32,28 +27,33 @@ type User {
     token: String
     recipes: [Recipe!]!
 }
-
 input UserInput { 
     email: String!
     pwd: String!
 }
 
-type Query { 
-
-    signin(email: String!, pwd: String!): User!
-    signout(token: String!): User!
-    login(email: String!, pwd: String!): User!
-    logout(token: String!): User!
-
-    addIngredient(name: String!): Ingredient
-    deleteIngredient(id: ID!): Ingredient
-    addRecipe(name: String!, description: String!, ingredients: [ID!]!): Recipe
-    updateRecipe(id: ID!, name: String, description: String, ingredients: [ID!]): Recipe
-    deleteRecipe(id: ID!): Recipe
-
-    getRecipes: [Recipe!]!
-    getRecipe(id: Int!): Recipe!
-    getUser: User!
-    getUsers: [User!]!
+input Busqueda {
+    author: String!
+    ingredient: String!
 }
+type Query{
+    
+    getUser(id: String!): User
+    getUsers:[User]
+    getRecipe(id: String!): Recipe
+    getRecipes(busqueda: Busqueda): [Recipe]
+}
+type Mutation{
+    
+    SignIn(email: String!, pwd: String!): User!
+    LogIn(email: String!, pwd: String!): Boolean!
+    LogOut: String!
+    AddIngredient(name: String!): Ingredient
+    AddRecipe(name: String!, description: String!, ingredients: [String]!): Recipe
+    SignOut:Boolean!
+    DeleteRecipe(id: String!): Boolean!
+    UpdateRecipe(name: String!, description: String!, ingredients: [String]!): Recipe
+    DeleteIngredient(id: String!): Boolean!
+}
+
 `
