@@ -8,14 +8,14 @@ https://github.com/Nebrija-Programacion/web-backend/tree/master/practicas/2122/p
 Debemos de utilizar una API REST utilizando `Node.js con Typescript' y el servidor de **Apollo Server**. Y la base de datos utilizada 
 para alojar nuestros datos es **Mongo Atlas**.
 
-## Ejecución 
+## Ejecución  :magic_wand:
 Las dependencias correspondientes estarán instaladas dentro del package.json, ejecutando por el comando:
 ```
 npm install
 ```
 Se instalaran de esta forma todas las dependencias dentro de nuestro proyecto.
 
-### Dependencias utilizadas
+### Dependencias utilizadas :bookmark_tabs:
 ```
 "dependencies": {
     "@types/axios": "^0.14.0",
@@ -38,11 +38,11 @@ Se instalaran de esta forma todas las dependencias dentro de nuestro proyecto.
   },
 ```
 
-### Datos confidenciales con .env
+### Datos confidenciales con .env :lock:
 Hemos utilizazo el archivo .env creado en nuestra carpeta raíz, para declarar variables confidenciales como la URL de mongo, 
 la cual guarda nuestros usuarios y contraseñas, el puerto de nuestro localhost y los authors.
 
-## Participantes
+## Participantes ✨
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
