@@ -3,5 +3,4 @@ export const authenticate = (req: any, res:any) => {
     if(forbiden.some(q => req.body.query.includes(q))) {
         return res.sendStatus(403);
     }
-
 }

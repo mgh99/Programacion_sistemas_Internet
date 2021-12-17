@@ -1,19 +1,19 @@
 import { ApolloError } from 'apollo-server-errors';
 import { Collection, Db, ObjectId } from "mongodb";
-import { Ingredient, User } from "../types";
+import { User, Ingredient } from "../types";
 import { v4 as uuidv4 } from "uuid";
 const brcypt = require("bcrypt");
-
+import * as dotenv from "dotenv";
+dotenv.config();
 
 export const Mutation = {
-
     SignIn: async (parent: any, args: { email: string, pwd: string }, context: { usersDb: Collection }) => {
         const user = await context.usersDb.findOne({ email: args.email });
         if (!user) {
             const tok = uuidv4();
             const usuario = {
                 email: args.email,
-                pwd: encriptar((args.pwd)),
+                password: encriptar((args.pwd)),
                 token: null
             };
             await context.usersDb.insertOne(usuario);
@@ -31,14 +31,14 @@ export const Mutation = {
             throw new ApolloError('Usuario ya registrado', 'MY_ERROR_CODE');
         }
     },
-
-    SignOut: async (parent: any, args: any, context: { usersDb: Collection, recipesDb: Collection }) => {
-
-        await context.recipesDb.findOneAndDelete({ uthor: process.env.TOKEN as string });
-        const user = await context.usersDb.findOneAndDelete({ id: process.env.TOKEN as string });
-        return user.ok;
+    SignOut: async (parent: any, args: any, context: { usersDb: Collection, recipesDb: Collection,token_headers:string }) => {
+                if(Autentificador(context.token_headers,process.env.TOKEN as string)==false){
+                throw new ApolloError('Para esta petición, registrate primero', 'MY_ERROR_CODE');
+            }
+    await context.recipesDb.findOneAndDelete({uthor:process.env.TOKEN as string });
+    const user= await context.usersDb.findOneAndDelete({id:process.env.TOKEN as string});
+    return user.ok;
     },
-
     LogIn: async (parent: any, args: { email: string, pwd: string }, context: { usersDb: Collection }) => {
         const user = (await context.usersDb.findOne({ email: (args.email) }));// as User);
         if (user) {
@@ -58,8 +58,11 @@ export const Mutation = {
             throw new ApolloError('Usuario no registrado', 'MY_ERROR_CODE');
         }
     },
+    LogOut: async (parent: any, args: { token: string }, context: { usersDb: Collection ,token_headers:string}) => {
 
-    LogOut: async (parent: any, args: { token: string }, context: { usersDb: Collection }) => {
+        if(Autentificador(context.token_headers,process.env.TOKEN as string)==false){
+            throw new ApolloError('Para esta petición, registrate primero', 'MY_ERROR_CODE');
+        }
         (await context.usersDb.updateOne({ token: args.token }, {
             set: {
                 token: null
@@ -68,44 +71,45 @@ export const Mutation = {
         //set(undefined);
         const user = (await context.usersDb.findOne({ token: args.token }));// as User);
         if (!user /*&& (getToken() == undefined)*/) {
+            process.env.PORT="";
             return "El token se ha borrado"
         } else {
             throw new ApolloError('Token no registrado', 'MY_ERROR_CODE');
         }
     },
-
-    AddIngredient: async (parent: any, args: { name: string }, context: { ingredientsDb: Collection }) => {
-
-        const ingredient = await context.ingredientsDb.findOne({ //busca el ingrediente en la base de datos por su nombre
+    AddIngredient: async (parent: any, args: { name: string }, context: { ingredientsDb: Collection,token_headers:string }) => {
+        if(Autentificador(context.token_headers,process.env.TOKEN as string)==false){
+            throw new ApolloError('Para esta petición, registrate primero', 'MY_ERROR_CODE');
+        }
+        //compruebo si el ingrediente existe
+        const ingredient = await context.ingredientsDb.findOne({
             name: args.name,
         });
 
         if (ingredient) { //si el ingrediente ya existe
             throw new ApolloError('El ingrediente ya existe', 'MY_ERROR_CODE');
-        } else { //si no existe lo crea y lo guarda en la base de datos
-            const inserta = { //crea el ingrediente a insertar en la base de datos
+        } else {
+            const inserta = {
                 name: args.name,
-                recipes: [ingredient],
+                recipes: []
             }
             await context.ingredientsDb.insertOne(inserta);
-            const insertado = await context.ingredientsDb.findOne({ name: inserta.name }); //inserta.name -> comprobar de que se esta metiendo bien
-
+            const insertado = await context.ingredientsDb.findOne({ name: inserta.name })
             if (insertado) {
                 return {
                     ...insertado,
                     id: insertado._id,
-                   
                 }
             }
         }
-
-
     },
-
-    AddRecipe: async (parent: any, args: { name: string, description: string, ingredients: [String] }, context: { usersDb: Collection, recipesDb: Collection }) => {
+    AddRecipe: async (parent: any, args: {name: string, description: string, ingredients: [String] }, context: {usersDb: Collection,recipesDb: Collection,token_headers:string}) => {
+        if(Autentificador(context.token_headers,process.env.TOKEN as string)==false){
+            throw new ApolloError('Para esta petición, registrate primero', 'MY_ERROR_CODE');
+        }
         //añado la receta a la base de datos con los ingredientes 
         const recipe = {
-            name: args.name,
+            title: args.name,
             description: args.description,
             ingredients: args.ingredients,
             author: process.env.TOKEN,
@@ -113,7 +117,7 @@ export const Mutation = {
         await context.recipesDb.insertOne(recipe);
         const recipe2 = await context.recipesDb.findOne({ name: args.name });
         if (recipe2) {
-            (await context.usersDb.updateOne({ token: process.env.TOKEN as string }, { $each: { recipes: recipe2._id } }))
+            (await context.usersDb.updateOne({token:process.env.TOKEN as string} ,{ $each: { recipes:recipe2._id} }))
             return {
                 id: recipe2._id,
                 name: recipe2.name as string,
@@ -121,37 +125,30 @@ export const Mutation = {
             }
         }
     },
-
-    DeleteIngredient: async (parent: any, args: { id: string }, context: { ingredientsDb: Collection, recipesDb: Collection }) => {
-        const ingredient = await context.ingredientsDb.findOne({ _id: new ObjectId(args.id), author: process.env.TOKEN as string });
-
+    DeleteIngredient: async (parent: any, args: { id: string }, context: { ingredientsDb: Collection, recipesDb:Collection,token_headers:string}) => {
+        if(Autentificador(context.token_headers,process.env.TOKEN as string)==false){
+            throw new ApolloError('Para esta petición, registrate primero', 'MY_ERROR_CODE');
+        }
+        const ingredient = await context.ingredientsDb.findOne({ _id: new ObjectId(args.id),author:process.env.TOKEN as string});
         if (ingredient) {
-            const borrado1 = await context.ingredientsDb.deleteOne({ _id: new ObjectId(args.id) });
-            console.log(borrado1);
-            const borrado2 = await context.recipesDb.deleteMany({ ingredients: args.id });
+           const borrado1= await context.ingredientsDb.deleteOne({ _id: new ObjectId(args.id)});
+           console.log(borrado1);
+           const borrado2= await context.recipesDb.deleteMany({ingredients:args.id});
             return borrado1.acknowledged && borrado2.acknowledged;
         }
         return false;
     },
-
-    DeleteRecipe: async (parent: any, args: { id: string }, context: { recipesDb: Collection }) => {
-        const recipe = await context.recipesDb.findOne({ _id: new ObjectId(args.id) });
-        if (recipe) {
-            const borrado = await context.recipesDb.findOneAndDelete({ _id: new ObjectId(args.id), token: process.env.TOKEN as string });
-            console.log(borrado);
-            return true;
+    DeleteRecipe: async (parent: any, args: {id:string}, context: {recipesDb: Collection,token_headers:string}) => {
+        if(Autentificador(context.token_headers,process.env.TOKEN as string)==false){
+            throw new ApolloError('Para esta petición, registrate primero', 'MY_ERROR_CODE');
+        }
+        const recipe = await context.recipesDb.findOne({_id: new ObjectId(args.id)});
+        if(recipe){
+           const borrado= await context.recipesDb.findOneAndDelete({_id: new ObjectId(args.id),author:process.env.TOKEN as string});
+            return borrado.ok
         }
         return false;
     },
-
-    UpdateRecipe: async (parent: any, args: { name: string, description: string, ingredients: [string] }, context: { recipesDb: Collection }) => {
-
-
-
-
-    },
-
-
 }
 
 ///////////////  Funciones de cifrado
@@ -163,3 +160,11 @@ const encriptar = (contraseña: string) => {
 const desencriptar = (contraseña: string, hash: string) => {
     return brcypt.compareSync(contraseña, hash);//compara la contraseña con el hash
 }
+
+const Autentificador = (contra: string, token: string) => {
+    if(contra === token) {
+        return true;
+    }else{
+        return false;
+    }
+  }

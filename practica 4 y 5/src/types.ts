@@ -1,27 +1,32 @@
 import {ObjectId } from "mongodb";
 
+/**
+ * Los tipos que estamos usando aqui son para poder manupular mejor el mongo
+ * En los arrays de otro tipo de datos voy sa guardar unicamente el id, para luego hacer mas facil la busqueda
+ * Ponemos los ? para que cuando creemos el usuario o la receta etc... sea mas productivo.
+ * 
+ */
 export type Recipes = {
-    _id?:ObjectId,
+    _id?:string,
     name:string,
     description:string,
-    ingredients:[Ingredient],
+    ingredients:[string],
     author:string
   };
 
   export type User={
-    _id?:ObjectId,
+    _id?:string,
     email:string,
-    password:string,
+    pwd:string,
     token?:any,
-    recipes?:[Recipes]
+    recipes?:[string]
   }
 
   export type Ingredient={
-    _id:ObjectId,
+    _id?:string,
     name:string,
-    recipes:[Recipes]
+    recipes?:[string]
   }
-
   export type Busqueda={
     author: string,
     ingredient: string
