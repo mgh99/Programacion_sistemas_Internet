@@ -16,7 +16,7 @@ npm install
 Se instalaran de esta forma todas las dependencias dentro de nuestro proyecto.
 
 ### Dependencias utilizadas :bookmark_tabs:
-
+```
 "dependencies": {
     "@types/axios": "^0.14.0",
     "@types/express": "^4.17.13",
@@ -36,7 +36,7 @@ Se instalaran de esta forma todas las dependencias dentro de nuestro proyecto.
     "uuid": "^8.3.2",
     "uuidv4": "^6.2.12"
   },
-
+```
 
 ### Datos confidenciales con .env :lock:
 Hemos utilizazo el archivo .env creado en nuestra carpeta raíz, para declarar variables confidenciales como la URL de mongo, 
