@@ -20,7 +20,7 @@
     "express": "^4.17.1",
     "graphql": "^15.8.0",
     "mongodb": "^4.2.0",
-    "mongoose": "^6.0.13",
+    "mongoose": "^6.11.3",
     "morgan": "^1.10.0",
     "nodemon": "^2.0.15",
     "ts-node": "^10.4.0",
